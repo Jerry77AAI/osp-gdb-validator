@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "osp-gdb-validator"
+version = "0.1.0"
+description = "Schema QC for OSP/FTTx file geodatabases — license-free (GDAL OpenFileGDB): fields, types, domains, uniqueness, typo detection"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Jerry Stevens" }]
+keywords = ["OSP", "FTTx", "fiber", "GIS", "geodatabase", "GDAL", "QC", "validation", "ESRI", "schema"]
+dependencies = [
+    "PyYAML>=6.0",
+    # GDAL python bindings are intentionally NOT listed here: install them
+    # from your platform (apt python3-gdal, conda gdal, or OSGeo4W) so the
+    # binding version matches the system libgdal.
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.scripts]
+osp-gdb-validate = "osp_gdb_validator.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

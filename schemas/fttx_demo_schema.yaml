@@ -1,0 +1,144 @@
+# FTTx Demo Schema — synthetic, clean-room (see docs/CLEAN_ROOM.md)
+# Schema definition format v1 for osp-gdb-validator.
+#
+# Structure:
+#   schema_name / version / crs  — identity + expected spatial reference
+#   domains:  coded (exact value set) or range (numeric min/max)
+#   layers:   feature classes with geometry type + field specs
+#
+# Field spec keys:
+#   name      exact field name expected in the GDB
+#   type      String | Integer | Real | Date  (OGR base types)
+#   length    max width for String fields (warning if GDB width differs)
+#   required  true => null/empty values are errors
+#   unique    true => duplicate values are errors
+#   domain    name of a domain in the domains: block
+
+schema_name: FTTx_Demo
+version: "1.0.0"
+crs: "EPSG:4326"
+
+domains:
+  CableType:
+    kind: coded
+    field_type: String
+    codes:
+      AER: Aerial
+      UND: Underground (conduit)
+      BUR: Direct buried
+  FiberCount:
+    kind: coded
+    field_type: Integer
+    codes:
+      12: 12-fiber
+      24: 24-fiber
+      48: 48-fiber
+      96: 96-fiber
+      144: 144-fiber
+      288: 288-fiber
+  ConstructionStatus:
+    kind: coded
+    field_type: String
+    codes:
+      PLAN: Planned / designed
+      PERM: In permitting
+      CONST: Under construction
+      ASBUILT: As-built complete
+  ClosureType:
+    kind: coded
+    field_type: String
+    codes:
+      AER: Aerial closure
+      PED: Pedestal
+      VLT: Vault / handhole mounted
+  StructureType:
+    kind: coded
+    field_type: String
+    codes:
+      HH: Handhole
+      MH: Manhole
+      VLT: Vault
+  DropType:
+    kind: coded
+    field_type: String
+    codes:
+      AER: Aerial drop
+      UND: Underground drop
+  ServiceStatus:
+    kind: coded
+    field_type: String
+    codes:
+      PLANNED: Planned serviceable location
+      DROPPED: Drop placed, not connected
+      CONNECTED: Active service
+  PoleClass:
+    kind: coded
+    field_type: Integer
+    codes:
+      1: Class 1
+      2: Class 2
+      3: Class 3
+      4: Class 4
+      5: Class 5
+      6: Class 6
+      7: Class 7
+  MakeReadyStatus:
+    kind: coded
+    field_type: String
+    codes:
+      REQ: Make-ready required
+      COMP: Make-ready complete
+      NA: Not applicable
+  SpanLengthFt:
+    kind: range
+    field_type: Real
+    min: 0
+    max: 20000
+  PoleHeightFt:
+    kind: range
+    field_type: Real
+    min: 20
+    max: 125
+
+layers:
+  FiberCable:
+    geometry: LineString
+    fields:
+      - {name: CABLE_ID, type: String, length: 32, required: true, unique: true}
+      - {name: CABLE_TYPE, type: String, length: 8, required: true, domain: CableType}
+      - {name: FIBER_COUNT, type: Integer, required: true, domain: FiberCount}
+      - {name: STATUS, type: String, length: 16, required: true, domain: ConstructionStatus}
+      - {name: LENGTH_FT, type: Real, required: true, domain: SpanLengthFt}
+      - {name: INSTALL_DATE, type: Date, required: false}
+
+  SpliceClosure:
+    geometry: Point
+    fields:
+      - {name: CLOSURE_ID, type: String, length: 32, required: true, unique: true}
+      - {name: CLOSURE_TYPE, type: String, length: 8, required: true, domain: ClosureType}
+      - {name: STATUS, type: String, length: 16, required: true, domain: ConstructionStatus}
+      - {name: TRAY_CAPACITY, type: Integer, required: false}
+
+  StructurePole:
+    geometry: Point
+    fields:
+      - {name: POLE_ID, type: String, length: 32, required: true, unique: true}
+      - {name: OWNER, type: String, length: 64, required: true}
+      - {name: POLE_CLASS, type: Integer, required: false, domain: PoleClass}
+      - {name: HEIGHT_FT, type: Real, required: true, domain: PoleHeightFt}
+      - {name: MR_STATUS, type: String, length: 8, required: true, domain: MakeReadyStatus}
+
+  UndergroundStructure:
+    geometry: Point
+    fields:
+      - {name: STRUCT_ID, type: String, length: 32, required: true, unique: true}
+      - {name: STRUCT_TYPE, type: String, length: 8, required: true, domain: StructureType}
+      - {name: SIZE_CODE, type: String, length: 16, required: false}
+
+  ServiceLocation:
+    geometry: Point
+    fields:
+      - {name: LOC_ID, type: String, length: 32, required: true, unique: true}
+      - {name: ADDRESS, type: String, length: 128, required: true}
+      - {name: SERV_STATUS, type: String, length: 16, required: true, domain: ServiceStatus}
+      - {name: DROP_TYPE, type: String, length: 8, required: false, domain: DropType}

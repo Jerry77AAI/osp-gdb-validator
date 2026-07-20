@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GDAL (OpenFileGDB — no Esri license needed)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gdal-bin python3-gdal python3-yaml python3-pytest
+
+      - name: Show GDAL version
+        run: |
+          ogrinfo --version
+          python3 -c "from osgeo import ogr; d=ogr.GetDriverByName('OpenFileGDB'); print('OpenFileGDB create:', d.GetMetadataItem('DCAP_CREATE'))"
+
+      - name: Run test suite
+        run: python3 -m pytest tests/ -v
+
+      - name: Demo — build synthetic GDBs and validate
+        run: |
+          python3 tools/build_sample_gdb.py data
+          echo "=== CLEAN GDB (expect PASS, exit 0) ==="
+          PYTHONPATH=src python3 -m osp_gdb_validator.cli data/fttx_demo_clean.gdb -s schemas/fttx_demo_schema.yaml
+          echo "=== DIRTY GDB (expect FAIL, exit 1) ==="
+          PYTHONPATH=src python3 -m osp_gdb_validator.cli data/fttx_demo_dirty.gdb -s schemas/fttx_demo_schema.yaml --json dirty_report.json || test $? -eq 1
+
+      - name: Upload dirty-GDB report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dirty-gdb-validation-report
+          path: dirty_report.json
