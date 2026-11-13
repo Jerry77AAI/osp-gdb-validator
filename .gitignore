@@ -8,3 +8,4 @@ data/
 *.json
 !schemas/*.yaml
 .venv/
+*.bundle

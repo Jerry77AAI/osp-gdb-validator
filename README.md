@@ -1,5 +1,7 @@
 # osp-gdb-validator
 
+[![CI](https://github.com/Jerry77AAI/osp-gdb-validator/actions/workflows/ci.yml/badge.svg)](https://github.com/Jerry77AAI/osp-gdb-validator/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 **Schema QC for OSP / FTTx file geodatabases — no Esri license required.**
 
 Reads an Esri file geodatabase with GDAL's open-source OpenFileGDB driver and
@@ -135,6 +137,13 @@ that passes, and a dirty one with 11 seeded defects covering the check matrix
 above. Every ID, address, coordinate, and attribute is fabricated (see
 [docs/CLEAN_ROOM.md](docs/CLEAN_ROOM.md)). The test suite asserts that every
 seeded defect is detected and that the clean GDB yields zero false positives.
+
+## What it does not do
+
+- It does not fix data. It reports; the engineer decides.
+- It does not check network topology or connectivity (cable-to-closure, span-to-pole).
+- It reads file geodatabases only — not enterprise geodatabases or ArcGIS Online services.
+- It knows only the schema you give it. Writing that schema from your data dictionary is the real work.
 
 ## Roadmap
 
